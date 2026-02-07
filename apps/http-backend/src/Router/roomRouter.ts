@@ -6,6 +6,10 @@ import { authMiddleware } from "../middleware/authMiddleware";
 
 export const roomRouter : any = Router()
 
+interface RoomParams {
+    roomId : number
+}
+
 roomRouter.post('/create-room', authMiddleware, async (req : Request<{}>, res : Response<{}>) => {
     const data = CreateRoomSchema.safeParse(req.body)
 
@@ -31,4 +35,34 @@ roomRouter.post('/create-room', authMiddleware, async (req : Request<{}>, res : 
     res.json({
         room  
     })
+})
+
+roomRouter.get('/chat/:roomId', authMiddleware, async (req : Request<RoomParams>, res : Response<{}>) => {
+    const roomId  = Number(req.params.roomId)
+    try {
+         const message = await prisma.chat.findMany({
+        where : {
+            roomId : roomId
+        },
+        orderBy : {
+            id : "desc"
+        },
+        take : 50
+    })
+    if(message) {
+    res.json({
+        message
+    })} else {
+    res.json({
+        message : "Error While Getting Chats"
+    })
+    }
+        
+    } catch (error) {
+        res.json({
+            message :"Internal Error while fetching chats",
+            error : "This is the error"+error
+        })        
+    }
+   
 })
