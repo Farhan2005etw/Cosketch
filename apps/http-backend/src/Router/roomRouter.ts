@@ -10,7 +10,11 @@ interface RoomParams {
     roomId : number
 }
 
-roomRouter.post('/create-room', authMiddleware, async (req : Request<{}>, res : Response<{}>) => {
+interface SlugParams {
+    slug : string
+}
+
+roomRouter.post('/create-room', async (req : Request<{}>, res : Response<{}>) => {
     const data = CreateRoomSchema.safeParse(req.body)
 
     if(!data.success) {
@@ -37,7 +41,7 @@ roomRouter.post('/create-room', authMiddleware, async (req : Request<{}>, res : 
     })
 })
 
-roomRouter.get('/chat/:roomId', authMiddleware, async (req : Request<RoomParams>, res : Response<{}>) => {
+roomRouter.get('/chat/:roomId',  async (req : Request<RoomParams>, res : Response<{}>) => {
     const roomId  = Number(req.params.roomId)
     try {
          const message = await prisma.chat.findMany({
@@ -65,4 +69,27 @@ roomRouter.get('/chat/:roomId', authMiddleware, async (req : Request<RoomParams>
         })        
     }
    
+})
+
+roomRouter.get('/get-room/:slug',  async (req : Request<SlugParams>, res : Response<{}>) => {
+    const slug = req.params.slug
+    try {
+        const roomId = await prisma.room.findFirst({
+            where : {
+                slug
+            }
+        })
+
+        const id = roomId?.id
+
+        res.json({
+            id
+        })
+        
+    } catch (error) {
+        res.json({
+            message : "Internal Error",
+            error
+        })
+    }    
 })
