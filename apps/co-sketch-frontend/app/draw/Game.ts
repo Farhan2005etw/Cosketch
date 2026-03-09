@@ -36,6 +36,9 @@ export class Game {
     private startY = 0
     private selectedTool : Tool = "Circle"
     private penPoints : {x : number, y : number}[] = []
+    private zoom = 1;
+    private offsetX = 0;
+    private offsetY = 0;
     
     constructor(canvas : HTMLCanvasElement, roomId : string, socket : WebSocket) {
         this.canvas = canvas;
@@ -61,7 +64,7 @@ export class Game {
                 
     }
 
-    setTool(tool: "Circle" | "Pencil" | "Rect" | "Pen")  {
+    setTool(tool: "Circle" | "Pencil" | "Rect" | "Pen" | "Pan")  {
         this.selectedTool = tool 
     }
 
@@ -83,8 +86,38 @@ export class Game {
     }
     }
 
-    clearCanvas() {
+    getMousePos(e : MouseEvent) {
+        const rect = this.canvas.getBoundingClientRect()
+
+        const x = (e.clientX - rect.left - this.offsetX) / this.zoom
+        const y = (e.clientY - rect.top - this.offsetY) / this.zoom
+
+        return { x,y }
+    }
+
+    handelWheel = (e : WheelEvent) => {
+        e.preventDefault()
+
+        const zoomAmount = -e.deltaY * 0.001
+
+        this.zoom += zoomAmount
+
+        this.zoom = Math.min(Math.max(0.2, this.zoom), 5)
+
+        this.clearCanvas()
+    }
+
+    clearCanvas(preview? : () => void) {      
+        
+       
+         this.ctx.save()
+
          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+         this.ctx.translate(this.offsetX, this.offsetY)
+         
+         this.ctx.scale(this.zoom, this.zoom)
+          
          this.ctx.fillStyle = "rgba(0, 0, 0)"
          this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -116,15 +149,24 @@ export class Game {
                 this.ctx.stroke()
             }
     })
+
+    if(preview) {
+        preview()
+    }
+
+    this.ctx.restore()
+    
     }
 
     mouseDownHandler = (e) => {
+        const pos = this.getMousePos(e)
+        
          this.clicked = true
-         this.startX = e.clientX
-         this.startY = e.clientY
+         this.startX = pos.x
+         this.startY = pos.y
 
          if(this.selectedTool === "Pen") {
-            this.penPoints = [{x : e.clientX, y: e.clientY}]
+            this.penPoints = [{x : pos.x, y: pos.y}]
             
          }
 
@@ -134,10 +176,15 @@ export class Game {
 
     mouseUpHandler = (e) => {
         this.clicked = false
-        const width = e.clientX - this.startX;
-        const height = e.clientY - this.startY;
-        const x = e.clientX;
-        const y = e.clientY
+        
+        const pos = this.getMousePos(e)
+
+        const x = pos.x
+        const y = pos.y
+
+        const width = x - this.startX;
+        const height = y - this.startY;
+       
         
         const selectedTool = this.selectedTool
 
@@ -196,17 +243,9 @@ export class Game {
 
     }
 
-    mouseMoveHandler = (e) => {
-        if (this.clicked) {
-            const x = e.clientX
-            const y = e.clientY
-            
-            const width = e.clientX - this.startX;
-            const height = e.clientY - this.startY;
-            this.clearCanvas();
-            this.ctx.strokeStyle = "rgba(255, 255, 255)"
-            //@ts-ignore
-            const selectedTool = this.selectedTool
+    drawPreviewShape = (x : number, y : number, width : number, height : number)  => {
+        this.ctx.strokeStyle = "rgba(255, 255, 255)"
+        const selectedTool = this.selectedTool
             if(selectedTool === "Rect") {
             this.ctx.strokeRect(this.startX, this.startY, width, height);           
             } else if (selectedTool === "Circle") {
@@ -234,10 +273,38 @@ export class Game {
 
                 }
                 this.ctx.strokeStyle = "rgba(255, 255, 255)"
-                this.ctx.stroke()
+                this.ctx.stroke()   
+                
+                
+            } 
+    }
 
-               
+    mouseMoveHandler = (e) => {
+        if (this.clicked) {
+
+             if (this.selectedTool === "Pan") {
+                this.offsetX += e.movementX
+                this.offsetY += e.movementY
+                this.clearCanvas()
+                return
             }
+
+            const pos = this.getMousePos(e)
+            const x = pos.x
+            const y = pos.y
+            
+            const width = x - this.startX;
+            const height = y - this.startY;
+
+            console.log("move"+ x, y)
+            this.clearCanvas(() => {
+                this.drawPreviewShape(x, y, width, height)
+            });
+            
+            //@ts-ignore
+
+            
+            
             
         }
 
@@ -248,7 +315,8 @@ export class Game {
 
             this.canvas.addEventListener("mouseup", this.mouseUpHandler)
 
-        this.canvas.addEventListener("mousemove", this.mouseMoveHandler)  
+            this.canvas.addEventListener("mousemove", this.mouseMoveHandler) 
+             
 
     }
 }

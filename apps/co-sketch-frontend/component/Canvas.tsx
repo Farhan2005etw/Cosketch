@@ -1,10 +1,10 @@
 import { initDraw } from "@/app/draw/Index"
 import { useEffect, useRef, useState } from "react"
 import { IconButton } from "./IconButton"
-import { Camera, Circle, Pen, Pencil, RectangleHorizontalIcon } from 'lucide-react';
+import { Camera, Circle, Hand, Pen, Pencil, RectangleHorizontalIcon } from 'lucide-react';
 import { Game } from "@/app/draw/Game";
 
-export type Tool = "Circle" | "Pencil" | "Rect" | "Pen"
+export type Tool = "Circle" | "Pencil" | "Rect" | "Pen" | "Pan"
 
 export function Canvas ({roomId, socket} : {roomId : string, socket : WebSocket}) {
 
@@ -48,5 +48,6 @@ export default function TopBar ({selectedTool, setSelectedTool} : {selectedTool 
         <IconButton activated={selectedTool === "Rect"}  icon={<RectangleHorizontalIcon />} onClick={() => {setSelectedTool("Rect")}} />
         <IconButton activated={selectedTool === "Circle"} icon={<Circle />} onClick={() => {setSelectedTool("Circle")}} />
         <IconButton activated={selectedTool === "Pen"} icon={<Pen />} onClick={() => {setSelectedTool("Pen")}} />
+        <IconButton activated={selectedTool === "Pan"} icon={<Hand />} onClick={() => {setSelectedTool("Pan")}} />
     </div>
 }   
