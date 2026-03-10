@@ -38,6 +38,7 @@ userRouter.post('/signin', async (req : Request<{}>, res : Response<{}>) => {
     }, JWT_SECRET)
 
     res.json({
+        sucess : true,
         message : "Signin Successfully",
         token
     })
@@ -75,6 +76,7 @@ userRouter.post('/signup', async (req : Request<{}>, res : Response<{}>) => {
         const user = await prisma.user.create({data : userBody})
         if (user) {
             res.json({
+                success : true,
                 message : "user Created Successfully",
                 user 
             })            
