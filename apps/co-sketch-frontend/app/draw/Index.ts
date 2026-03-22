@@ -19,7 +19,7 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
 
     let existingShapes: Shape[] = await getExistingShapes(roomId);
 
-    console.log(existingShapes)
+    
 
     if (!ctx) {
         return
