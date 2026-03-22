@@ -159,7 +159,7 @@ export class Game {
     
     }
 
-    mouseDownHandler = (e) => {
+    mouseDownHandler = (e : any) => {
         const pos = this.getMousePos(e)
         
          this.clicked = true
@@ -175,7 +175,7 @@ export class Game {
 
     }
 
-    mouseUpHandler = (e) => {
+    mouseUpHandler = (e : any) => {
         this.clicked = false
         
         const pos = this.getMousePos(e)
@@ -282,7 +282,7 @@ export class Game {
             } 
     }
 
-    mouseMoveHandler = (e) => {
+    mouseMoveHandler = (e : any) => {
         if (this.clicked) {
 
              if (this.selectedTool === "Pan") {
